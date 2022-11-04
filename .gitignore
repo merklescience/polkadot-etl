@@ -131,3 +131,5 @@ dmypy.json
 # project-specific items
 *.json
 .envrc
+*.csv
+todo.md

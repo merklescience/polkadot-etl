@@ -4,4 +4,3 @@ import typer
 
 
 export_blocks_command = typer.Typer()
-
