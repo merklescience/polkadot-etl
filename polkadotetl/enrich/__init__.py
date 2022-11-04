@@ -1,7 +1,10 @@
 """Functions to help enrich blocks"""
-from polkadotetl.core.types import TransferTypes
+import warnings
 
-POLKADOT_TREASURY = "13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB"
+from polkadotetl.core.types import TransferTypes
+from polkadotetl.constants import POLKADOT_TREASURY
+from polkadotetl.warnings import NoTransactionsWarning
+
 
 
 def enrich_block(sidecar_block_response: dict) -> list[dict]:
@@ -49,15 +52,22 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
             if event_type not in required_events:
                 continue
             status = extrinsic["success"]
+            signature = extrinsic["signature"]
+            if isinstance(signature["signer"], dict):
+                signer = signature["signer"]["id"]
+            elif isinstance(signature["signer"], str):
+                signer = signature["signer"]
+            else:
+                raise TypeError("Signature signer is not a string or a dictionary. Value:{}".format(signature))
             if event_type == "balances.Transfer":
-                sender_address = extrinsic["signature"]["signer"]["id"]
+                sender_address = signer
                 # second item in the data list
                 receiver_address = event["data"][1]
                 coin_value = event["data"][2]
                 fee = 0
                 type = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
-                sender_address = extrinsic["signature"]["signer"]["id"]
+                sender_address = signer
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
@@ -108,7 +118,7 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 # multiple cases
                 data = event["data"]
                 author_id = sidecar_block_response["authorId"]
-                validator = extrinsic["signature"]["signer"]["id"]
+                validator = signer
                 address = data[0]
                 if address in (author_id, validator, POLKADOT_TREASURY):
                     sender_address = validator
@@ -130,7 +140,7 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 receiver_address=receiver_address,
                 coin_value=coin_value,
                 fee=fee,
-                type=int(type),
+                type=type.value,
                 txn_hash=txn_hash,
                 status=status,
                 block_timestamp=block_timestamp,
@@ -138,4 +148,6 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
             )
             if txn not in txns:
                 txns.append(txn)
+    if len(txns) == 0:
+        warnings.warn(f"Block #{block_number} doesn't have any transactions with relevant events.", NoTransactionsWarning)
     return txns
