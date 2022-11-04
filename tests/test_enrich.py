@@ -33,8 +33,8 @@ def test_enrich_blocks():
     with open(
         "result.csv".format(os.path.basename(sample_block)), "w", newline=""
     ) as f:
-        fieldnames = enriched_block[0].keys()
+        fieldnames = txns[0].keys()
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for row in enriched_block:
+        for row in txns:
             writer.writerow(row)

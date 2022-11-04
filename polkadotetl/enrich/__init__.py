@@ -53,7 +53,9 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 continue
             status = extrinsic["success"]
             signature = extrinsic["signature"]
-            if isinstance(signature["signer"], dict):
+            if signature is None:
+                signer = None
+            elif isinstance(signature["signer"], dict):
                 signer = signature["signer"]["id"]
             elif isinstance(signature["signer"], str):
                 signer = signature["signer"]
@@ -65,26 +67,26 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 receiver_address = event["data"][1]
                 coin_value = event["data"][2]
                 fee = 0
-                type = TransferTypes.NORMAL
+                type_ = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
                 sender_address = signer
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
                 fee = event["data"][0]
-                type = TransferTypes.FEE
+                type_ = TransferTypes.FEE
             elif event_type in ("staking.Reward", "staking.Rewarded"):
                 sender_address = None
                 receiver_address = event["data"][0]
                 coin_value = event["data"][1]
                 fee = 0
-                type = TransferTypes.NO_SENDER
+                type_ = TransferTypes.NO_SENDER
             elif event_type == "claims.Claimed":
                 sender_address = None
                 receiver_address = event["data"][0]
                 coin_value = event["data"][2]
                 fee = 0
-                type = TransferTypes.NO_SENDER
+                type_ = TransferTypes.NO_SENDER
             elif event_type in (
                 "identity.SubIdentityAdded",
                 "identity.SubIdentityRevoked",
@@ -95,25 +97,25 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 receiver_address = event["data"][1]
                 coin_value = event["data"][2]
                 fee = 0
-                type = TransferTypes.NORMAL
+                type_ = TransferTypes.NORMAL
             elif event_type == "balances.Slashed":
                 sender_address = event["data"][0]
                 receiver_address = POLKADOT_TREASURY
                 coin_value = event["data"][1]
                 fee = 0
-                type = TransferTypes.NORMAL
+                type_ = TransferTypes.NORMAL
             elif event_type == "balances.DustLost":
                 sender_address = event["data"][0]
                 receiver_address = None
                 coin_value = event["data"][1]
                 fee = 0
-                type = TransferTypes.NO_RECEIVER
+                type_ = TransferTypes.NO_RECEIVER
             elif event_type == "balances.BalanceSet":
                 sender_address = None
                 receiver_address = event["data"][0]
                 coin_value = event["data"][1]
                 fee = 0
-                type = TransferTypes.BALANCES_SET_BY_ROOT
+                type_ = TransferTypes.BALANCES_SET_BY_ROOT
             elif event_type == "balances.Deposit":
                 # multiple cases
                 data = event["data"]
@@ -125,22 +127,22 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                     receiver_address = address
                     coin_value = 0
                     fee = data[1]
-                    type = TransferTypes.FEE
+                    type_ = TransferTypes.FEE
                 else:
                     sender_address = None
                     receiver_address = address
                     coin_value = data[1]
                     fee = 0
-                    type = TransferTypes.NO_SENDER
+                    type_ = TransferTypes.NO_SENDER
             else:
-                raise NotImplementedError(f"Invalid event type {event_type}")
+                raise NotImplementedError(f"Invalid event type_ {event_type}")
             txn = dict(
                 block_number=block_number,
                 sender_address=sender_address,
                 receiver_address=receiver_address,
                 coin_value=coin_value,
                 fee=fee,
-                type=type.value,
+                type=type_.value,
                 txn_hash=txn_hash,
                 status=status,
                 block_timestamp=block_timestamp,
