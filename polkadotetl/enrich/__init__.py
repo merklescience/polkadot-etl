@@ -6,7 +6,6 @@ from polkadotetl.constants import POLKADOT_TREASURY
 from polkadotetl.warnings import NoTransactionsWarning
 
 
-
 def enrich_block(sidecar_block_response: dict) -> list[dict]:
     """This function helps enrich block responses from the sidecar.
 
@@ -60,7 +59,11 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
             elif isinstance(signature["signer"], str):
                 signer = signature["signer"]
             else:
-                raise TypeError("Signature signer is not a string or a dictionary. Value:{}".format(signature))
+                raise TypeError(
+                    "Signature signer is not a string or a dictionary. Value:{}".format(
+                        signature
+                    )
+                )
             if event_type == "balances.Transfer":
                 sender_address = signer
                 # second item in the data list
@@ -151,5 +154,8 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
             if txn not in txns:
                 txns.append(txn)
     if len(txns) == 0:
-        warnings.warn(f"Block #{block_number} doesn't have any transactions with relevant events.", NoTransactionsWarning)
+        warnings.warn(
+            f"Block #{block_number} doesn't have any transactions with relevant events.",
+            NoTransactionsWarning,
+        )
     return txns
