@@ -11,7 +11,6 @@ import typer
 from polkadotetl.constants import SIDECAR_RETRIES
 from polkadotetl.warnings import NoTransactionsWarning
 from polkadotetl.logger import logger
-from polkadotetl.cli.internals import mutually_exclusive_group
 from polkadotetl.exceptions import InvalidInput
 
 app = typer.Typer()
