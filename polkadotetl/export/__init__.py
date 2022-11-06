@@ -16,8 +16,8 @@ def export_blocks(
     end_block: Optional[int] = None,
     start_timestamp: Optional[int] = None,
     end_timestamp: Optional[int] = None,
-    retries: int = SIDECAR_RETRIES
-    ):
+    retries: int = SIDECAR_RETRIES,
+):
     """Exports all blocks from a sidecar into a folder of jsons"""
     invalid_input = False
     if start_block is None:
@@ -45,5 +45,6 @@ def export_blocks(
             )
             invalid_input = True
     if invalid_input:
-        raise InvalidInput("Cannot use the provided inputs to the function. Check the logs for more information.")
-
+        raise InvalidInput(
+            "Cannot use the provided inputs to the function. Check the logs for more information."
+        )
