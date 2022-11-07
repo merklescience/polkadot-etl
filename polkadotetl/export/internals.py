@@ -1,12 +1,13 @@
+from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 import json
 from pathlib import Path
 from typing import Optional
 from polkadotetl.logger import logger
-from polkadotetl.exceptions import InvalidInput
-from polkadotetl.constants import SIDECAR_RETRIES
-from polkadotetl.export.sidecar import PolkadotRequestor
+from polkadotetl.exceptions import InvalidInput, NoBlockAtTimestamp
+from polkadotetl.constants import NEAREST_BLOCK_THRESHOLD_IN_SECONDS, SIDECAR_RETRIES
+from polkadotetl.export import sidecar
 
 
 class InputType(Enum):
@@ -58,24 +59,88 @@ def validate_inputs(
         )
 
 
-def get_block_for_timestamp(timestamp: datetime):
-    """Returns a block number for a particular timestamp"""
-    # TODO: implement a helper function to get a block number given a timestamp
-    raise NotImplementedError()
+def get_block_for_timestamp(
+    sidecar_url: str,
+    timestamp: datetime,
+    threshold_in_seconds=NEAREST_BLOCK_THRESHOLD_IN_SECONDS,
+):
+    """Returns the nearest block number for a particular timestamp.
+    `threshold_in_seconds` controls the closeness of the block.
+    """
+    start_block_number = 1
+    requestor = sidecar.PolkadotRequestor()
+    get_block = requestor.build_requestor(sidecar.get_block)
+    end_block_response = get_block(sidecar_url, "head")
+    end_block_number = int(end_block_response["number"])
+    low = start_block_number
+    high = end_block_number
+    mid = low
+    logger.debug(
+        f"Searching for a block that occurs at {timestamp:} between {low:,} and {high:,} blocks."
+    )
+    # NOTE: use binary search algorithm to get the block number for this timestamp
+    searched = defaultdict(int)
+    last_mid = None
+    last_timestamp = None
+    while low <= high:
+        mid = (high + low) // 2
+        logger.debug(f"Checking if block #{mid:,} happens at {timestamp.timestamp():,}")
+        response = get_block(sidecar_url, mid)
+        # get the timestamp out of the first extrinsic
+        current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
+        # divide by 1000 because it is in milliseconds
+        actual_timestamp = datetime.utcfromtimestamp(current_timestamp)
+        difference = timestamp - actual_timestamp
+        logger.debug(
+            f"Block #{mid:,} happens at {current_timestamp:,}. Difference=`{difference}`"
+        )
+
+        if current_timestamp < int(timestamp.timestamp()):
+            low = mid + 1
+        elif current_timestamp > int(timestamp.timestamp()):
+            high = mid - 1
+        else:
+            logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
+            return mid
+        # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
+        if last_mid is not None:
+            if abs(last_timestamp - timestamp.timestamp()) <= threshold_in_seconds:
+                if abs(last_timestamp - timestamp.timestamp()) <= abs(
+                    current_timestamp - timestamp.timestamp()
+                ):
+                    nearest = last_mid
+                    nearest_timestamp_epoch = last_timestamp
+
+                else:
+                    nearest = mid
+                    nearest_timestamp_epoch = current_timestamp
+                nearest_timestamp = datetime.utcfromtimestamp(nearest_timestamp_epoch)
+                diff = timestamp - nearest_timestamp
+                logger.warning(
+                    f"Could not find an exact block at timestamp {timestamp:}. The nearest block is {nearest:,} at {nearest_timestamp}. Difference={diff}"
+                )
+                return nearest
+        last_mid = mid
+        last_timestamp = current_timestamp
+    message = f"There is no block at timestamp `{timestamp}. Last searched block: {mid:,}. {actual_timestamp=}, {difference=}`."
+    logger.error(message)
+    raise NoBlockAtTimestamp(message)
 
 
 def export_blocks_by_timestamp(
     output_directory: Path,
     sidecar_url: str,
-    start_timestamp: Optional[int] = None,
-    end_timestamp: Optional[int] = None,
+    start_timestamp: Optional[datetime] = None,
+    end_timestamp: Optional[datetime] = None,
     retries: int = SIDECAR_RETRIES,
 ):
     """Exports blocks from the sidecar by block timestamp"""
     # TODO: Implement this function
     # NOTE: Internally calls the export_blocks_by_number
     start_block = get_block_for_timestamp(start_timestamp)
+    logger.debug(f"Start block for timestamp: {start_timestamp} is {start_block}")
     end_block = get_block_for_timestamp(end_timestamp)
+    logger.debug(f"end block for timestamp: {end_timestamp} is {end_block}")
     export_blocks_by_number(
         output_directory,
         sidecar_url,
@@ -88,14 +153,15 @@ def export_blocks_by_timestamp(
 def export_blocks_by_number(
     output_directory: Path,
     sidecar_url: str,
-    start_block: Optional[int] = None,
-    end_block: Optional[int] = None,
+    start_block: int,
+    end_block: int,
     retries: int = SIDECAR_RETRIES,
 ):
     """Exports blocks from the sidecar by block number"""
-    block_requestor = PolkadotRequestor(sidecar_url, retries=retries)
-    for block_number in range(start_block, end_block):
-        response = block_requestor.request_block(block_number)
+    requestor = sidecar.PolkadotRequestor(retries=retries)
+    get_block = requestor.build_requestor(sidecar.get_block)
+    for block_number in range(start_block, end_block + 1):
+        response = get_block(sidecar_url, block_number)
         response_json_path = output_directory / f"{block_number}.json"
         with open(response_json_path, "w") as file_buffer:
             file_buffer.write(json.dumps(response))

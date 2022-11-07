@@ -1,8 +1,10 @@
 """Functions to help enrich blocks"""
 import warnings
 
+from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
 from polkadotetl.constants import POLKADOT_TREASURY
+from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
 
@@ -12,6 +14,10 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
     This function returns a list of transactions"""
     block_number = sidecar_block_response["number"]
     token_address = "DOT"
+    if not sidecar_block_response["finalized"]:
+        message = f"Block #{block_number} is not yet finalized. Cannot be enriched."
+        logger.error(message)
+        raise BlockNotFinalized(message)
 
     # First filter out the extrinsics where extrinsics.method.pallet
     # is in "paraInherent", "timestamp"

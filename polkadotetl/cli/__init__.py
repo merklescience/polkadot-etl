@@ -1,4 +1,5 @@
 """polkadotetl CLI built using Typer"""
+from datetime import datetime
 from pathlib import Path
 import glob
 import json
@@ -50,8 +51,8 @@ def export_blocks(
     ),
     start_block: int = typer.Option(None, help="Start Block"),
     end_block: int = typer.Option(None, help="End Block"),
-    start_timestamp: str = typer.Option(None),
-    end_timestamp: str = typer.Option(None),
+    start_timestamp: datetime = typer.Option(None),
+    end_timestamp: datetime = typer.Option(None),
     retries: int = typer.Option(
         SIDECAR_RETRIES, help="Number of retries for the requests"
     ),
