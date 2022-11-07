@@ -1,9 +1,12 @@
 from datetime import datetime
 from enum import Enum
+import json
+from pathlib import Path
 from typing import Optional
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput
 from polkadotetl.constants import SIDECAR_RETRIES
+from polkadotetl.export.sidecar import PolkadotRequestor
 
 
 class InputType(Enum):
@@ -90,5 +93,13 @@ def export_blocks_by_number(
     retries: int = SIDECAR_RETRIES,
 ):
     """Exports blocks from the sidecar by block number"""
-    # TODO: Implement this function
-    raise NotImplementedError()
+    block_requestor = PolkadotRequestor(sidecar_url, retries=retries)
+    for block_number in range(start_block, end_block):
+        response = block_requestor.request_block(block_number)
+        response_json_path = output_directory / f"{block_number}.json"
+        with open(response_json_path, "w") as file_buffer:
+            file_buffer.write(json.dumps(response))
+            logger.debug(
+                f"Wrote block response of block #{block_number} to {response_json_path}."
+            )
+    logger.debug(f"Wrote {end_block-start_block} blocks to {output_directory}.")
