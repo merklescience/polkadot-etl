@@ -137,10 +137,15 @@ def export_blocks_by_timestamp(
     """Exports blocks from the sidecar by block timestamp"""
     # TODO: Implement this function
     # NOTE: Internally calls the export_blocks_by_number
-    start_block = get_block_for_timestamp(start_timestamp)
+    if start_timestamp > end_timestamp:
+        message = f"Start timestamp has to be before end timestamp. {start_timestamp=:} and {end_timestamp=:}"
+        logger.error(message)
+        raise InvalidInput(message)
+    start_block = get_block_for_timestamp(sidecar_url, start_timestamp)
     logger.debug(f"Start block for timestamp: {start_timestamp} is {start_block}")
-    end_block = get_block_for_timestamp(end_timestamp)
+    end_block = get_block_for_timestamp(sidecar_url, end_timestamp)
     logger.debug(f"end block for timestamp: {end_timestamp} is {end_block}")
+    logger.info(f"Getting blocks between {start_timestamp} and {end_timestamp}")
     export_blocks_by_number(
         output_directory,
         sidecar_url,
@@ -158,8 +163,15 @@ def export_blocks_by_number(
     retries: int = SIDECAR_RETRIES,
 ):
     """Exports blocks from the sidecar by block number"""
+    if start_block > end_block:
+        message = f"Start block number has to be smaller than end block number. {start=:,} and {end=:,}"
+        logger.error(message)
+        raise InvalidInput(message)
     requestor = sidecar.PolkadotRequestor(retries=retries)
     get_block = requestor.build_requestor(sidecar.get_block)
+    logger.info(
+        f"Getting {end_block-start_block:,} blocks between {start_block:,} and {end_block:,}"
+    )
     for block_number in range(start_block, end_block + 1):
         response = get_block(sidecar_url, block_number)
         response_json_path = output_directory / f"{block_number}.json"

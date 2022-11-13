@@ -36,11 +36,6 @@ def main(
 
 @app.command()
 def export_blocks(
-    sidecar_url: str = typer.Argument(
-        ...,
-        envvar="POLKADOT_SIDECAR_URL",
-        help="Fully qualified URL to the polkadot sidecar. Provide the API key within the query parameters as well, if required.",
-    ),
     output_directory: Path = typer.Argument(
         ...,
         exists=True,
@@ -49,10 +44,15 @@ def export_blocks(
         dir_okay=True,
         file_okay=False,
     ),
+    sidecar_url: str = typer.Argument(
+        ...,
+        envvar="POLKADOT_SIDECAR_URL",
+        help="Fully qualified URL to the polkadot sidecar. Provide the API key within the query parameters as well, if required.",
+    ),
     start_block: int = typer.Option(None, help="Start Block"),
     end_block: int = typer.Option(None, help="End Block"),
-    start_timestamp: datetime = typer.Option(None),
-    end_timestamp: datetime = typer.Option(None),
+    start_timestamp: datetime = typer.Option(None, help="Start timestamp"),
+    end_timestamp: datetime = typer.Option(None, help="End timestamp"),
     retries: int = typer.Option(
         SIDECAR_RETRIES, help="Number of retries for the requests"
     ),

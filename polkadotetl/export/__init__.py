@@ -1,4 +1,5 @@
 """Functions to export polkadot blocks from a sidecar"""
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -16,8 +17,8 @@ def export_blocks(
     sidecar_url: str,
     start_block: Optional[int] = None,
     end_block: Optional[int] = None,
-    start_timestamp: Optional[int] = None,
-    end_timestamp: Optional[int] = None,
+    start_timestamp: Optional[datetime] = None,
+    end_timestamp: Optional[datetime] = None,
     retries: int = SIDECAR_RETRIES,
 ):
     """Exports all blocks from a sidecar into a folder of jsons"""
