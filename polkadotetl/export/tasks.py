@@ -4,11 +4,13 @@ from celery import Celery
 import json
 from polkadotetl.export import sidecar
 
-app = Celery("tasks", broker="pyamqp://guest@localhost", backend='rpc://')
+app = Celery("tasks", broker="pyamqp://guest@localhost", backend="rpc://")
 
 
 @app.task
-def get_block_and_write_to_file(sidecar_url: str, block_number: int, output_directory: str):
+def get_block_and_write_to_file(
+    sidecar_url: str, block_number: int, output_directory: str
+):
     """Gets a block from the sidecar and writes to file"""
     requestor = sidecar.PolkadotRequestor(retries=5)
     get_block = requestor.build_requestor(sidecar.get_block)
