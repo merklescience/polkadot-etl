@@ -20,13 +20,13 @@ def main(
     """
     # store the common context
     ctx.obj = SimpleNamespace(
-        clickhouse_url=config('CLICKHOUSE_URL'),
-        clickhouse_user=config('CLICKHOUSE_USER'),
-        clickhouse_password=config('CLICKHOUSE_PASSWORD'),
-        clickhouse_db=config('CLICKHOUSE_AUTH_DB'),
-        clickhouse_port=config('CLICKHOUSE_HTTP_PORT'),
-        tigergraph_url=config('POLKADOT_TIGERGRAPH_URL'),
-        sidecar_url=config('POLKADOT_SIDECAR_URL'),
+        clickhouse_url=config("CLICKHOUSE_URL"),
+        clickhouse_user=config("CLICKHOUSE_USER"),
+        clickhouse_password=config("CLICKHOUSE_PASSWORD"),
+        clickhouse_db=config("CLICKHOUSE_AUTH_DB"),
+        clickhouse_port=config("CLICKHOUSE_HTTP_PORT"),
+        tigergraph_url=config("POLKADOT_TIGERGRAPH_URL"),
+        sidecar_url=config("POLKADOT_SIDECAR_URL"),
     )
 
 
@@ -46,5 +46,3 @@ def write_to_clickhouse(
     # this?
     # ctx.obj contains all the credentials and config that's stored in the `main` function
     # above, so this can be used to call the necessary functions within a pipeline.
-    
-
