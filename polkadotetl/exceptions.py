@@ -22,3 +22,10 @@ class InvalidBlockNumber(Exception):
     """Raised when a user queries an invalid block. This is mostly necessary
     because the sidecar uses /blocks/head for the head block, and the function
     takes integers, but accounts just for this one string."""
+
+class PruningError(Exception):
+    """Raised when the `success` field of an extrinsic has errors,
+    specifically when the field has the string:
+
+        'Unable to fetch Events, cannot confirm extrinsic status. Check pruning settings on the node.'
+    """
