@@ -1,21 +1,81 @@
 """polkadotetl CLI built using Typer"""
-import os
-import json
-import glob
+from datetime import datetime
 from pathlib import Path
+import glob
+import json
+import logging
+import os
+import sys
 import warnings
 
 import typer
-
+from polkadotetl.constants import SIDECAR_RETRIES
 from polkadotetl.warnings import NoTransactionsWarning
 from polkadotetl.logger import logger
+from polkadotetl.exceptions import InvalidInput
+from polkadotetl.cli import merkle
+from polkadotetl.constants import SIDECAR_RETRIES
 
 app = typer.Typer()
 
 
+@app.callback(invoke_without_command=False)
+def main(
+    ctx: typer.Context,
+    log_level: str = typer.Option(
+        "INFO",
+        help="Set the loglevel for this application. Accepted values are python loglevels. See here: https://docs.python.org/3/library/logging.html#levels",
+    ),
+):
+
+    if not isinstance(logging.getLevelName(log_level), int):
+        logger.error("Invalid log level. Unable to continue.")
+        raise typer.Exit(2)
+    logger.remove()
+    logger.add(sys.stdout, colorize=True, filter="polkadotetl", level=log_level)
+    logger.debug("Running: {}".format(ctx.invoked_subcommand))
+
+
 @app.command()
-def export_blocks():
+def export_blocks(
+    output_directory: Path = typer.Argument(
+        ...,
+        exists=True,
+        writable=True,
+        resolve_path=True,
+        dir_okay=True,
+        file_okay=False,
+    ),
+    sidecar_url: str = typer.Argument(
+        ...,
+        envvar="POLKADOT_SIDECAR_URL",
+        help="Fully qualified URL to the polkadot sidecar. Provide the API key within the query parameters as well, if required.",
+    ),
+    start_block: int = typer.Option(None, help="Start Block"),
+    end_block: int = typer.Option(None, help="End Block"),
+    start_timestamp: datetime = typer.Option(None, help="Start timestamp"),
+    end_timestamp: datetime = typer.Option(None, help="End timestamp"),
+    retries: int = typer.Option(
+        SIDECAR_RETRIES, help="Number of retries for the requests"
+    ),
+):
     """Exports blocks from the polkadot sidecar API into a newline-separated jsons file"""
+    from polkadotetl.export import export_blocks
+
+    logger.debug(f"{start_block=}, {end_block=}, {start_timestamp=}, {end_timestamp=}")
+    try:
+        export_blocks(
+            output_directory,
+            sidecar_url,
+            start_block,
+            end_block,
+            start_timestamp,
+            end_timestamp,
+            retries,
+        )
+    except InvalidInput as e:
+        logger.error("Invalid input provided to CLI.")
+        raise typer.Exit(1) from e
 
 
 @app.command()
@@ -57,8 +117,7 @@ def enrich(
         logger.error("`{}` exists. Use --overwrite if you want to do replace the file.")
         raise typer.Exit(1)
     enriched_transactions = 0
-    if quiet < 2:
-        logger.info("Processing {:,} response files.".format(len(response_files)))
+    logger.info("Processing {:,} response files.".format(len(response_files)))
     with open(output_file, "w") as output_file_buffer:
         for response_file in response_files:
             with open(response_file, "r") as file_buffer:
@@ -68,12 +127,18 @@ def enrich(
                     enriched_transactions += 1
                     output_file_buffer.write("{}\n".format(json.dumps(txn)))
 
-    if quiet < 2:
-        logger.info(
-            "Completed processing all files in `{}` and wrote them to `{}`. Total number of transactions: {:,}".format(
-                block_response_path, output_file, enriched_transactions
-            )
+    logger.info(
+        "Completed processing all files in `{}` and wrote them to `{}`. Total number of transactions: {:,}".format(
+            block_response_path, output_file, enriched_transactions
         )
+    )
+
+
+# NOTE: This is a merkle science specific command that collects and writes to our datastores.
+# TODO: Abstract this out into its own CLI, that can be plugged into the OSS version
+app.add_typer(
+    merkle.app, name="merkle", help="Collects transactions and writes to datastores"
+)
 
 
 def cli():

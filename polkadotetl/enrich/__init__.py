@@ -1,8 +1,10 @@
 """Functions to help enrich blocks"""
 import warnings
 
+from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
 from polkadotetl.constants import POLKADOT_TREASURY
+from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
 
@@ -12,12 +14,16 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
     This function returns a list of transactions"""
     block_number = sidecar_block_response["number"]
     token_address = "DOT"
+    if not sidecar_block_response["finalized"]:
+        message = f"Block #{block_number} is not yet finalized. Cannot be enriched."
+        logger.error(message)
+        raise BlockNotFinalized(message)
 
     # First filter out the extrinsics where extrinsics.method.pallet
     # is in "paraInherent", "timestamp"
     extrinsics = sidecar_block_response["extrinsics"]
     block_timestamp = extrinsics[0]["args"]["now"]
-    ignored_method_pallets = [
+    ignored_extrinsic_pallets = [
         "paraInherent",
         "timestamp",
     ]
@@ -40,8 +46,11 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
     txns = []
     for extrinsic in extrinsics:
         # ignore extrinsics where the method.pallet is not required
-        if extrinsic["method"]["pallet"] in ignored_method_pallets:
+        if extrinsic["method"]["pallet"] in ignored_extrinsic_pallets:
             continue
+        extrinsic_type = "{}.{}".format(
+            extrinsic["method"]["pallet"], extrinsic["method"]["method"]
+        )
         events = extrinsic["events"]
         txn_hash = extrinsic["hash"]
         for event in events:
@@ -72,7 +81,10 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
-                sender_address = signer
+                if extrinsic_type == "council.close":
+                    sender_address = None
+                else:
+                    sender_address = signer
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
