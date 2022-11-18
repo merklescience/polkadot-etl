@@ -1,0 +1,255 @@
+[
+  {
+    "name": "authorId",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "extrinsics",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "args",
+        "type": "STRING",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "era",
+        "type": "RECORD",
+        "mode": "REQUIRED",
+        "fields": [
+          {
+            "name": "mortalEra",
+            "type": "STRING",
+            "mode": "REPEATED"
+          },
+          {
+            "name": "immortalEra",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "events",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "method",
+            "type": "RECORD",
+            "mode": "REQUIRED",
+            "fields": [
+              {
+                "name": "pallet",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              },
+              {
+                "name": "method",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              }
+            ]
+          },
+          {
+            "name": "data",
+            "type": "STRING",
+            "mode": "REPEATED"
+          }
+        ]
+      },
+      {
+        "name": "hash",
+        "type": "STRING",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "info",
+        "type": "RECORD",
+        "mode": "REQUIRED",
+        "fields": [
+          {
+            "name": "weight",
+            "type": "STRING"
+          },
+          {
+            "name": "class",
+            "type": "STRING"
+          },
+          {
+            "name": "partialFee",
+            "type": "STRING"
+          },
+          {
+            "name": "kind",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "method",
+        "type": "RECORD",
+        "mode": "REQUIRED",
+        "fields": [
+          {
+            "name": "pallet",
+            "type": "STRING",
+            "mode": "REQUIRED"
+          },
+          {
+            "name": "method",
+            "type": "STRING",
+            "mode": "REQUIRED"
+          }
+        ]
+      },
+      {
+        "name": "nonce",
+        "type": "INT64"
+      },
+      {
+        "name": "paysFee",
+        "type": "boolean",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "signature",
+        "type": "STRING"
+      },
+      {
+        "name": "success",
+        "type": "boolean",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "tip",
+        "type": "INT64"
+      }
+    ]
+  },
+  {
+    "name": "extrinsicsRoot",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "finalized",
+    "type": "boolean",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "hash",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "logs",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "type",
+        "type": "STRING",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "index",
+        "type": "STRING",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "value",
+        "type": "STRING",
+        "mode": "REPEATED"
+      }
+    ]
+  },
+  {
+    "name": "number",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "onFinalize",
+    "type": "RECORD",
+    "mode": "REQUIRED",
+    "fields": [
+      {
+        "name": "events",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "method",
+            "type": "RECORD",
+            "mode": "REQUIRED",
+            "fields": [
+              {
+                "name": "pallet",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              },
+              {
+                "name": "method",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              }
+            ]
+          },
+          {
+            "name": "data",
+            "type": "STRING",
+            "mode": "REPEATED"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "onInitialize",
+    "type": "RECORD",
+    "mode": "REQUIRED",
+    "fields": [
+      {
+        "name": "events",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "method",
+            "type": "RECORD",
+            "mode": "REQUIRED",
+            "fields": [
+              {
+                "name": "pallet",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              },
+              {
+                "name": "method",
+                "type": "STRING",
+                "mode": "REQUIRED"
+              }
+            ]
+          },
+          {
+            "name": "data",
+            "type": "STRING",
+            "mode": "REPEATED"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "parentHash",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "stateRoot",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  }
+]

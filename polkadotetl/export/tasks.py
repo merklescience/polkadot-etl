@@ -22,6 +22,9 @@ def get_block_and_write_to_file(
         with open(response_json_path) as file_buffer:
             try:
                 block_response_data = json.load(file_buffer)
+            except Exception:
+                pass
+            else:
                 if block_response_data.get("extrinsics") is not None:
                     logger.debug(
                         f"Ignoring block #{block_number} as it's already written to a file"
@@ -29,8 +32,6 @@ def get_block_and_write_to_file(
                     return
                 else:
                     pass
-            except Exception:
-                pass
     response = get_block(sidecar_url, block_number)
     with open(response_json_path, "w") as file_buffer:
         file_buffer.write(json.dumps(response))
