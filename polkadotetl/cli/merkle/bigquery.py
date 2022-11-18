@@ -11,7 +11,7 @@ from polkadotetl.exceptions import PolkadotSidecarError, PruningError
 
 
 
-def convert_to_bigquery_schemas(
+def convert_to_bigquery_schema(
     input_dir: Path, output_dir: Path, start: int, stop: int, raise_error: bool = False
 ):
     """This function cleans the raw sidecar response and makes it so that it can write it to BigQuery.
