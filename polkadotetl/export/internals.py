@@ -2,12 +2,14 @@ from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 import json
+import pytz
 from pathlib import Path
 from typing import Optional
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput, NoBlockAtTimestamp
 from polkadotetl.constants import NEAREST_BLOCK_THRESHOLD_IN_SECONDS, SIDECAR_RETRIES
 from polkadotetl.export import sidecar
+from tenacity import RetryError
 
 
 class InputType(Enum):
@@ -68,6 +70,11 @@ def get_block_for_timestamp(
     `threshold_in_seconds` controls the closeness of the block.
     """
     start_block_number = 1
+
+    if not timestamp.tzinfo:
+        timestamp = pytz.utc.localize(timestamp)
+        # if no timezone is passed assume UTC
+
     requestor = sidecar.PolkadotRequestor()
     get_block = requestor.build_requestor(sidecar.get_block)
     end_block_response = get_block(sidecar_url, "head")
@@ -90,7 +97,7 @@ def get_block_for_timestamp(
         current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
         # divide by 1000 because it is in milliseconds
         actual_timestamp = datetime.utcfromtimestamp(current_timestamp)
-        difference = timestamp - actual_timestamp
+        difference = timestamp - pytz.utc.localize(actual_timestamp)
         logger.debug(
             f"Block #{mid:,} happens at {current_timestamp:,}. Difference=`{difference}`"
         )
@@ -115,7 +122,7 @@ def get_block_for_timestamp(
                     nearest = mid
                     nearest_timestamp_epoch = current_timestamp
                 nearest_timestamp = datetime.utcfromtimestamp(nearest_timestamp_epoch)
-                diff = timestamp - nearest_timestamp
+                diff = timestamp - pytz.utc.localize(nearest_timestamp)
                 logger.warning(
                     f"Could not find an exact block at timestamp {timestamp:}. The nearest block is {nearest:,} at {nearest_timestamp}. Difference={diff}"
                 )
@@ -170,14 +177,18 @@ def export_blocks_by_number(
     requestor = sidecar.PolkadotRequestor(retries=retries)
     get_block = requestor.build_requestor(sidecar.get_block)
     logger.info(
-        f"Getting {end_block-start_block:,} blocks between {start_block:,} and {end_block:,}"
+        f"Getting {end_block - start_block + 1:,} blocks between {start_block:,} and {end_block:,}"
     )
     for block_number in range(start_block, end_block + 1):
-        response = get_block(sidecar_url, block_number)
-        response_json_path = output_directory / f"{block_number}.json"
-        with open(response_json_path, "w") as file_buffer:
-            file_buffer.write(json.dumps(response))
-            logger.debug(
-                f"Wrote block response of block #{block_number} to {response_json_path}."
-            )
-    logger.debug(f"Wrote {end_block-start_block} blocks to {output_directory}.")
+        try:
+            response = get_block(sidecar_url, block_number)
+            response_json_path = output_directory / f"{block_number}.json"
+            with open(response_json_path, "w") as file_buffer:
+                file_buffer.write(json.dumps(response))
+                logger.debug(
+                    f"Wrote block response of block #{block_number} to {response_json_path}."
+                )
+        except RetryError:
+            logger.error(f"Unable to export block {block_number} due to retry failures")
+
+    logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")

@@ -13,7 +13,6 @@ from polkadotetl.constants import SIDECAR_RETRIES
 from polkadotetl.warnings import NoTransactionsWarning
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput
-from polkadotetl.cli import merkle
 from polkadotetl.constants import SIDECAR_RETRIES
 
 app = typer.Typer()
@@ -132,13 +131,6 @@ def enrich(
             block_response_path, output_file, enriched_transactions
         )
     )
-
-
-# NOTE: This is a merkle science specific command that collects and writes to our datastores.
-# TODO: Abstract this out into its own CLI, that can be plugged into the OSS version
-app.add_typer(
-    merkle.app, name="merkle", help="Collects transactions and writes to datastores"
-)
 
 
 def cli():
