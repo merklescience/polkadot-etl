@@ -133,3 +133,5 @@ dmypy.json
 .envrc
 *.csv
 todo.md
+
+*.DS_Store
