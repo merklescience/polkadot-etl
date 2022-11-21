@@ -23,16 +23,13 @@ $ polkadotetl --help
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ enrich         Enriches all Polkadot block response files from a folder and writes the results into a single, new-line-separated file of jsons. This can be directly uploaded to         │
 │                BigQuery.                                                                                                                                                                 │
-│ export-blocks  Exports blocks from the polkadot sidecar API into a newline-separated jsons file                                                                                          │
-│ merkle         Collects transactions and writes to datastores                                                                                                                            │
+│ export-blocks  Exports blocks from the polkadot sidecar API into a newline-separated jsons file                                                                                          │                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 `export-blocks` pulls data for a range of blocks from the sidecar and then writes each raw block response to a file.
 
 `enrich-blocks` runs a python function over these blocks, flattening them so that they can be written to a datastore for calculating account balances.
-
-`merkle` contains business-specific code that we use to implement company-level logic.
 
 ## Installation
 
