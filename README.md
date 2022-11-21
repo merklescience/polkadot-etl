@@ -23,8 +23,7 @@ $ polkadotetl --help
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ enrich         Enriches all Polkadot block response files from a folder and writes the results into a single, new-line-separated file of jsons. This can be directly uploaded to         │
 │                BigQuery.                                                                                                                                                                 │
-│ export-blocks  Exports blocks from the polkadot sidecar API into a newline-separated jsons file                                                                                          │
-│ merkle         Collects transactions and writes to datastores                                                                                                                            │
+│ export-blocks  Exports blocks from the polkadot sidecar API into a newline-separated jsons file                                                                                          │                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
