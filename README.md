@@ -31,8 +31,6 @@ $ polkadotetl --help
 
 `enrich-blocks` runs a python function over these blocks, flattening them so that they can be written to a datastore for calculating account balances.
 
-`merkle` contains business-specific code that we use to implement company-level logic.
-
 ## Installation
 
 This project can be installed using poetry.
