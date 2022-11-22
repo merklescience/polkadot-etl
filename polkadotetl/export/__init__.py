@@ -42,7 +42,7 @@ def export_blocks(
         )
 
 
-def get_latest_block(
+def get_latest_sync_status(
         sidecar_url: str,
 ):
     requestor = sidecar.PolkadotRequestor()
