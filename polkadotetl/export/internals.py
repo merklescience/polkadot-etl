@@ -182,7 +182,7 @@ def export_blocks_by_number(
     for block_number in range(start_block, end_block + 1):
         try:
             response = get_block(sidecar_url, block_number)
-            response_json_path = output_directory / f"{block_number}.json"
+            response_json_path = os.path.join(output_directory, f"{block_number}.json")
             with open(response_json_path, "w") as file_buffer:
                 file_buffer.write(json.dumps(response))
                 logger.debug(
