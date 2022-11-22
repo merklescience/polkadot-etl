@@ -51,11 +51,11 @@ def get_latest_block(
     print(end_block_response)
     return int(end_block_response["number"])
 
-def get_latest_block(
+def get_latest_block_datetime(
         sidecar_url: str,
 ):
     requestor = sidecar.PolkadotRequestor()
     get_block = requestor.build_requestor(sidecar.get_block)
     end_block_response = get_block(sidecar_url, "head")
     print(end_block_response)
-    return int(end_block_response["number"])
+    return end_block_response["timestamp"]
