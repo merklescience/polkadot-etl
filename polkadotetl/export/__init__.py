@@ -51,6 +51,7 @@ def get_latest_block(
     print(end_block_response)
     return int(end_block_response["number"])
 
+
 def get_latest_block_datetime(
         sidecar_url: str,
 ):
