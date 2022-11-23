@@ -200,4 +200,5 @@ def get_latest_block(
     requestor = sidecar.PolkadotRequestor()
     get_block = requestor.build_requestor(sidecar.get_block)
     end_block_response = get_block(sidecar_url, "head")
+    print(end_block_response)
     return int(end_block_response["number"]), str(end_block_response["timestamp"])
