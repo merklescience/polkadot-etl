@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "polkadotetl"
-version = "1.0.0"
+version = "1.0.1"
 description = "Polkadot ETL CLI in the spirit of the blockchain ETL project."
 authors = ["Vinay Keerthi <11478411+stonecharioteer@users.noreply.github.com>"]
 
