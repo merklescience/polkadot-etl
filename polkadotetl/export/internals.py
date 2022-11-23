@@ -192,3 +192,12 @@ def export_blocks_by_number(
             logger.error(f"Unable to export block {block_number} due to retry failures")
 
     logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")
+
+
+def get_latest_block(
+        sidecar_url: str,
+):
+    requestor = sidecar.PolkadotRequestor()
+    get_block = requestor.build_requestor(sidecar.get_block)
+    end_block_response = get_block(sidecar_url, "head")
+    return int(end_block_response["number"]), str(end_block_response["timestamp"])
