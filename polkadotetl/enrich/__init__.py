@@ -13,7 +13,7 @@ def enrich_block(sidecar_block_response: dict):
 
     This function returns a list of transactions"""
     block_number = sidecar_block_response["number"]
-    token_address = "DOT"
+    token_address = "0x0000"
     if not sidecar_block_response["finalized"]:
         message = f"Block #{block_number} is not yet finalized. Cannot be enriched."
         logger.error(message)
