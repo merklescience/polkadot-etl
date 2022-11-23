@@ -1,7 +1,7 @@
 """Tests for the sidecar requestor"""
 from decouple import config
 
-SIDECAR_URL = "https://merkle-polkadot-01.bdnodes.net?auth=yibdyXgPzZj9lgTE3vVV_nsFWKcRGhhGvOmFqPrnIqU"
+SIDECAR_URL = config("SIDECAR_URL")
 
 
 def test_requestor_function_with_sidecar():
