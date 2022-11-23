@@ -8,7 +8,9 @@ def test_enrich_blocks():
     import os
     import csv
     from polkadotetl.enrich import enrich_block
-
+    print(os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "sample_blocks/*.json"
+        ))
     sample_blocks = glob.glob(
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "sample_blocks/*.json"
@@ -38,3 +40,5 @@ def test_enrich_blocks():
         writer.writeheader()
         for row in txns:
             writer.writerow(row)
+
+test_enrich_blocks()
