@@ -170,7 +170,7 @@ def export_blocks_by_number(
     requestor = sidecar.PolkadotRequestor(retries=retries)
     get_block = requestor.build_requestor(sidecar.get_block)
     logger.info(
-        f"Getting {end_block-start_block:,} blocks between {start_block:,} and {end_block:,}"
+        f"Getting {end_block-start_block+1:,} blocks between {start_block:,} and {end_block:,}"
     )
     for block_number in range(start_block, end_block + 1):
         response = get_block(sidecar_url, block_number)
