@@ -1,7 +1,7 @@
 """Tests for the sidecar requestor"""
 from decouple import config
 
-SIDECAR_URL = config("SIDECAR_URL")
+SIDECAR_URL = "https://merkle-polkadot-01.bdnodes.net?auth=yibdyXgPzZj9lgTE3vVV_nsFWKcRGhhGvOmFqPrnIqU"
 
 
 def test_requestor_function_with_sidecar():
@@ -20,4 +20,5 @@ def test_get_block_for_timestamp():
 
     timestamp = datetime.datetime.now() - datetime.timedelta(days=5)
     block = internals.get_block_for_timestamp(SIDECAR_URL, timestamp)
+    print(block)
     assert isinstance(block, int), "Block number is invalid"

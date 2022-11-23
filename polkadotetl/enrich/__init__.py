@@ -8,7 +8,7 @@ from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
 
-def enrich_block(sidecar_block_response: dict) -> list[dict]:
+def enrich_block(sidecar_block_response: dict):
     """This function helps enrich block responses from the sidecar.
 
     This function returns a list of transactions"""
