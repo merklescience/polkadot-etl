@@ -143,12 +143,12 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 receiver_address = event["data"][1]
                 if int(block_number) >= 1248328:
                     if status:
-                        coin_value = event["data"][2] / DECIMAL_AFTER_REDENOMINATION
+                        coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
                     else:
                         coin_value = 0
                 else:
                     if status:
-                        coin_value = event["data"][2] / DECIMAL_BEFORE_REDENOMINATION
+                        coin_value = float(event["data"][2]) / DECIMAL_BEFORE_REDENOMINATION
                     else:
                         coin_value = 0
                 fee = 0
