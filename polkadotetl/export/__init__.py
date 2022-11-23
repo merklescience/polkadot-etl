@@ -42,12 +42,3 @@ def export_blocks(
             retries,
         )
 
-
-def get_latest_block(
-        sidecar_url: str,
-):
-    requestor = sidecar.PolkadotRequestor()
-    get_block = requestor.build_requestor(sidecar.get_block)
-    end_block_response = get_block(sidecar_url, "head")
-    print(end_block_response)
-    return tuple(int(end_block_response["number"]), str(end_block_response["timestamp"]))
