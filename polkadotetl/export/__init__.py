@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from polkadotetl.constants import SIDECAR_RETRIES
+from polkadotetl.export import sidecar
 from polkadotetl.export.internals import (
     InputType,
     validate_inputs,
@@ -42,7 +43,7 @@ def export_blocks(
         )
 
 
-def get_latest_sync_status(
+def get_latest_block(
         sidecar_url: str,
 ):
     requestor = sidecar.PolkadotRequestor()
