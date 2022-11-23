@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional
 
 from polkadotetl.constants import SIDECAR_RETRIES
-from polkadotetl.export import sidecar
 from polkadotetl.export.internals import (
     InputType,
     validate_inputs,
@@ -41,4 +40,3 @@ def export_blocks(
             end_timestamp,
             retries,
         )
-
