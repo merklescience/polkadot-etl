@@ -20,5 +20,4 @@ def test_get_block_for_timestamp():
 
     timestamp = datetime.datetime.now() - datetime.timedelta(days=5)
     block = internals.get_block_for_timestamp(SIDECAR_URL, timestamp)
-    print(block)
     assert isinstance(block, int), "Block number is invalid"
