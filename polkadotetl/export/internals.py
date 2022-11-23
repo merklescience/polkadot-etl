@@ -201,4 +201,4 @@ def get_latest_block(
     get_block = requestor.build_requestor(sidecar.get_block)
     end_block_response = get_block(sidecar_url, "head")
     print(end_block_response)
-    return int(end_block_response["number"]), str(end_block_response["timestamp"])
+    return int(end_block_response["number"]), int(end_block_response["extrinsics"][0]["args"]["now"])
