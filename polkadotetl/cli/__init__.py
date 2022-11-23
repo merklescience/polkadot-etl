@@ -14,6 +14,8 @@ from polkadotetl.warnings import NoTransactionsWarning
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput
 from polkadotetl.constants import SIDECAR_RETRIES
+from polkadotetl.cli.datasources.bigquery import convert_to_bigquery_schema
+
 
 app = typer.Typer()
 
@@ -75,6 +77,34 @@ def export_blocks(
     except InvalidInput as e:
         logger.error("Invalid input provided to CLI.")
         raise typer.Exit(1) from e
+
+
+@app.command()
+def convert_raw_blocks_to_bigquery_schema(
+    input_dir: Path = typer.Argument(
+        ...,
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        writable=True,
+        resolve_path=True,
+        help="Directory where raw export from polkadot sidecar can be found.",
+    ),    
+    output_dir: Path = typer.Argument(
+        ...,
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        writable=True,
+        resolve_path=True,
+        help="Directory to write transformed json files.",
+    ),
+    raise_error: bool = typer.Argument(
+        False,
+        help="Stop transformation if an unexpected error is seen"
+    )
+):
+    convert_to_bigquery_schema(input_dir=input_dir, output_dir=output_dir, raise_error=raise_error)
 
 
 @app.command()
