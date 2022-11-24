@@ -111,9 +111,9 @@ def get_block_for_timestamp(
             return mid
         # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
         if last_mid is not None:
-            if abs(last_timestamp - timestamp.timestamp()) <= threshold_in_seconds:
-                if abs(last_timestamp - timestamp.timestamp()) <= abs(
-                    current_timestamp - timestamp.timestamp()
+            if abs(last_timestamp - timestamp.timestamp()) < threshold_in_seconds:
+                if (
+                    last_timestamp - timestamp.timestamp() >= 0.0 
                 ):
                     nearest = last_mid
                     nearest_timestamp_epoch = last_timestamp
@@ -192,3 +192,34 @@ def export_blocks_by_number(
             logger.error(f"Unable to export block {block_number} due to retry failures")
 
     logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")
+
+
+def get_block_on_or_after_timestamp(
+    sidecar_url: str,
+    timestamp: datetime    
+):
+    return get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
+
+
+def get_block_before_timestamp(
+    sidecar_url: str,
+    timestamp: datetime    
+):
+    return (
+        get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp) - 1
+    )
+
+
+def get_latest_block(
+        sidecar_url: str,
+):
+    requestor = sidecar.PolkadotRequestor()
+    get_block = requestor.build_requestor(sidecar.get_block)
+    end_block_response = get_block(sidecar_url, "head")
+    print(end_block_response)
+
+    latest_block_timestamp = str(datetime.utcfromtimestamp(
+        int(end_block_response["extrinsics"][0]["args"]["now"]) / 1000)
+                                 .strftime('%Y-%m-%d %H:%M:%S %Z'))
+
+    return int(end_block_response["number"]), latest_block_timestamp
