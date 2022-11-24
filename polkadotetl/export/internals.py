@@ -192,3 +192,36 @@ def export_blocks_by_number(
             logger.error(f"Unable to export block {block_number} due to retry failures")
 
     logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")
+
+
+def get_block_on_or_after_timestamp(
+    sidecar_url: str,
+    timestamp: datetime    
+):
+    block_number = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
+    requestor = sidecar.PolkadotRequestor()
+    get_block = requestor.build_requestor(sidecar.get_block)    
+    response = get_block(sidecar_url, block_number)
+    # get the timestamp out of the first extrinsic
+    current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
+
+    if current_timestamp - timestamp.timestamp() <= -0.001:
+        return block_number + 1
+    else:
+        return block_number
+
+
+def get_block_before_timestamp(
+    sidecar_url: str,
+    timestamp: datetime    
+):
+    block_number = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
+    requestor = sidecar.PolkadotRequestor()
+    get_block = requestor.build_requestor(sidecar.get_block)    
+    response = get_block(sidecar_url, block_number)
+    # get the timestamp out of the first extrinsic
+    current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
+    
+    if current_timestamp - timestamp.timestamp() >= 0.001:
+        return block_number - 1
+    return block_number
