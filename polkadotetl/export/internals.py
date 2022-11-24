@@ -202,7 +202,7 @@ def get_latest_block(
     end_block_response = get_block(sidecar_url, "head")
     print(end_block_response)
 
-    latest_block_timestamp = str(datetime.datetime.utcfromtimestamp(
+    latest_block_timestamp = str(datetime.utcfromtimestamp(
         int(end_block_response["extrinsics"][0]["args"]["now"]) / 1000)
                                  .strftime('%Y-%m-%d %H:%M:%S %Z'))
 
