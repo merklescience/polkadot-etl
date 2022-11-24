@@ -111,9 +111,9 @@ def get_block_for_timestamp(
             return mid
         # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
         if last_mid is not None:
-            if abs(last_timestamp - timestamp.timestamp()) <= threshold_in_seconds:
-                if abs(last_timestamp - timestamp.timestamp()) <= abs(
-                    current_timestamp - timestamp.timestamp()
+            if abs(last_timestamp - timestamp.timestamp()) < threshold_in_seconds:
+                if (
+                    last_timestamp - timestamp.timestamp() >= 0.0 
                 ):
                     nearest = last_mid
                     nearest_timestamp_epoch = last_timestamp
@@ -198,30 +198,13 @@ def get_block_on_or_after_timestamp(
     sidecar_url: str,
     timestamp: datetime    
 ):
-    block_number = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
-    requestor = sidecar.PolkadotRequestor()
-    get_block = requestor.build_requestor(sidecar.get_block)    
-    response = get_block(sidecar_url, block_number)
-    # get the timestamp out of the first extrinsic
-    current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
-
-    if current_timestamp - timestamp.timestamp() <= -0.001:
-        return block_number + 1
-    else:
-        return block_number
+    return get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
 
 
 def get_block_before_timestamp(
     sidecar_url: str,
     timestamp: datetime    
 ):
-    block_number = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
-    requestor = sidecar.PolkadotRequestor()
-    get_block = requestor.build_requestor(sidecar.get_block)    
-    response = get_block(sidecar_url, block_number)
-    # get the timestamp out of the first extrinsic
-    current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
-    
-    if current_timestamp - timestamp.timestamp() >= 0.001:
-        return block_number - 1
-    return block_number
+    return (
+        get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp) - 1
+    )
