@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# project-specific items
+*.json
+.envrc
+*.csv
+todo.md
+
+*.DS_Store
