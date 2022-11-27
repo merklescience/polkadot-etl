@@ -91,10 +91,7 @@ def enrich_block(sidecar_block_response: dict):
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
-                if extrinsic_type == "council.close":
-                    sender_address = None
-                else:
-                    sender_address = signer
+                sender_address = signer
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
