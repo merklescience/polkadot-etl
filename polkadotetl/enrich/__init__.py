@@ -4,12 +4,7 @@ import datetime
 
 from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
-from polkadotetl.constants import (
-    POLKADOT_TREASURY, 
-    DECIMAL_BEFORE_REDENOMINATION, 
-    DECIMAL_AFTER_REDENOMINATION, 
-    POLKADOT_TYPE_VALUE
-)
+from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_BEFORE_REDENOMINATION, DECIMAL_AFTER_REDENOMINATION
 from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
@@ -240,7 +235,7 @@ def enrich_block(sidecar_block_response: dict):
                 transaction_hash=txn_hash,
                 sender_address=sender_address,
                 receiver_address=receiver_address,
-                type=POLKADOT_TYPE_VALUE,
+                type=type_.value,
                 token_address=token_address,
                 coin_value=coin_value,
                 fee=fee,
