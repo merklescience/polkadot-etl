@@ -4,7 +4,7 @@ import datetime
 
 from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
-from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION, DECIMAL_AFTER_REDENOMINATION
+from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION
 from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
