@@ -4,7 +4,7 @@ import datetime
 
 from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
-from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_BEFORE_REDENOMINATION, DECIMAL_AFTER_REDENOMINATION
+from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION
 from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
@@ -78,16 +78,10 @@ def enrich_block(sidecar_block_response: dict):
                 sender_address = signer
                 # second item in the data list
                 receiver_address = event["data"][1]
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
@@ -95,39 +89,24 @@ def enrich_block(sidecar_block_response: dict):
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
-                if int(block_number) >= 1248328:
-                    fee = float(event["data"][0]) / DECIMAL_AFTER_REDENOMINATION
-                else:
-                    fee = float(event["data"][0]) / DECIMAL_BEFORE_REDENOMINATION
+                fee = float(event["data"][0]) / DECIMAL_AFTER_REDENOMINATION
                 type_ = TransferTypes.FEE
             elif event_type in ("staking.Reward", "staking.Rewarded"):
                 sender_address = None
                 receiver_address = event["data"][0]
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_SENDER
             elif event_type == "claims.Claimed":
                 sender_address = None
                 receiver_address = event["data"][0]
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_SENDER
             elif event_type in (
@@ -138,61 +117,37 @@ def enrich_block(sidecar_block_response: dict):
             ):
                 sender_address = event["data"][0]
                 receiver_address = event["data"][1]
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][2]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "balances.Slashed":
                 sender_address = event["data"][0]
                 receiver_address = POLKADOT_TREASURY
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "balances.DustLost":
                 sender_address = event["data"][0]
                 receiver_address = None
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_RECEIVER
             elif event_type == "balances.BalanceSet":
                 sender_address = None
                 receiver_address = event["data"][0]
-                if int(block_number) >= 1248328:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        coin_value = 0
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
                 else:
-                    if status:
-                        coin_value = float(event["data"][1]) / DECIMAL_BEFORE_REDENOMINATION
-                    else:
-                        coin_value = 0
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.BALANCES_SET_BY_ROOT
             elif event_type == "balances.Deposit":
@@ -205,24 +160,15 @@ def enrich_block(sidecar_block_response: dict):
                     sender_address = validator
                     receiver_address = address
                     coin_value = 0
-                    if int(block_number) >= 1248328:
-                        fee = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
-                    else:
-                        fee = float(data[1]) / DECIMAL_BEFORE_REDENOMINATION
+                    fee = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
                     type_ = TransferTypes.FEE
                 else:
                     sender_address = None
                     receiver_address = address
-                    if int(block_number) >= 1248328:
-                        if status:
-                            coin_value = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
-                        else:
-                            coin_value = 0
+                    if status:
+                        coin_value = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
                     else:
-                        if status:
-                            coin_value = float(data[1]) / DECIMAL_BEFORE_REDENOMINATION
-                        else:
-                            coin_value = 0
+                        coin_value = 0
                     fee = 0
                     type_ = TransferTypes.NO_SENDER
             else:
