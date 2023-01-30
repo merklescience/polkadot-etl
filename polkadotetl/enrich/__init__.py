@@ -1,19 +1,20 @@
 """Functions to help enrich blocks"""
 import warnings
+import datetime
 
 from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
-from polkadotetl.constants import POLKADOT_TREASURY
+from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION
 from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
 
-def enrich_block(sidecar_block_response: dict) -> list[dict]:
+def enrich_block(sidecar_block_response: dict):
     """This function helps enrich block responses from the sidecar.
 
     This function returns a list of transactions"""
     block_number = sidecar_block_response["number"]
-    token_address = "DOT"
+    token_address = "0x0000"
     if not sidecar_block_response["finalized"]:
         message = f"Block #{block_number} is not yet finalized. Cannot be enriched."
         logger.error(message)
@@ -77,29 +78,35 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                 sender_address = signer
                 # second item in the data list
                 receiver_address = event["data"][1]
-                coin_value = event["data"][2]
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "treasury.Deposit":
-                if extrinsic_type == "council.close":
-                    sender_address = None
-                else:
-                    sender_address = signer
+                sender_address = signer
                 # second item in the data list
                 receiver_address = POLKADOT_TREASURY
                 coin_value = 0
-                fee = event["data"][0]
+                fee = float(event["data"][0]) / DECIMAL_AFTER_REDENOMINATION
                 type_ = TransferTypes.FEE
             elif event_type in ("staking.Reward", "staking.Rewarded"):
                 sender_address = None
                 receiver_address = event["data"][0]
-                coin_value = event["data"][1]
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_SENDER
             elif event_type == "claims.Claimed":
                 sender_address = None
                 receiver_address = event["data"][0]
-                coin_value = event["data"][2]
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_SENDER
             elif event_type in (
@@ -110,25 +117,37 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
             ):
                 sender_address = event["data"][0]
                 receiver_address = event["data"][1]
-                coin_value = event["data"][2]
+                if status:
+                    coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "balances.Slashed":
                 sender_address = event["data"][0]
                 receiver_address = POLKADOT_TREASURY
-                coin_value = event["data"][1]
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NORMAL
             elif event_type == "balances.DustLost":
                 sender_address = event["data"][0]
                 receiver_address = None
-                coin_value = event["data"][1]
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_RECEIVER
             elif event_type == "balances.BalanceSet":
                 sender_address = None
                 receiver_address = event["data"][0]
-                coin_value = event["data"][1]
+                if status:
+                    coin_value = float(event["data"][1]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
                 fee = 0
                 type_ = TransferTypes.BALANCES_SET_BY_ROOT
             elif event_type == "balances.Deposit":
@@ -141,27 +160,30 @@ def enrich_block(sidecar_block_response: dict) -> list[dict]:
                     sender_address = validator
                     receiver_address = address
                     coin_value = 0
-                    fee = data[1]
+                    fee = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
                     type_ = TransferTypes.FEE
                 else:
                     sender_address = None
                     receiver_address = address
-                    coin_value = data[1]
+                    if status:
+                        coin_value = float(data[1]) / DECIMAL_AFTER_REDENOMINATION
+                    else:
+                        coin_value = 0
                     fee = 0
                     type_ = TransferTypes.NO_SENDER
             else:
                 raise NotImplementedError(f"Invalid event type_ {event_type}")
             txn = dict(
-                block_number=block_number,
+                block=block_number,
+                transaction_hash=txn_hash,
                 sender_address=sender_address,
                 receiver_address=receiver_address,
+                type=type_.value,
+                token_address=token_address,
                 coin_value=coin_value,
                 fee=fee,
-                type=type_.value,
-                txn_hash=txn_hash,
-                status=status,
-                block_timestamp=block_timestamp,
-                token_address=token_address,
+                block_timestamp=datetime.datetime.utcfromtimestamp(int(block_timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S'),
+                log_index=0
             )
             if txn not in txns:
                 txns.append(txn)

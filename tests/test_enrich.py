@@ -8,7 +8,6 @@ def test_enrich_blocks():
     import os
     import csv
     from polkadotetl.enrich import enrich_block
-
     sample_blocks = glob.glob(
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "sample_blocks/*.json"

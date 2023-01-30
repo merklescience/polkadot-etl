@@ -83,4 +83,3 @@ bq load --format=json \
         /Users/polkadot-etl/tmp2/* \
         /Users/polkadot-etl/schema.json
 ```
-
