@@ -126,7 +126,7 @@ def get_block_for_timestamp(
                     nearest_timestamp_epoch = last_timestamp
 
                 elif (
-                    last_timestamp - timestamp.timestamp() < 0.0 
+                    last_timestamp - timestamp.timestamp() > 0.0 
                     and
                     not search_for_next_block
                 ):
