@@ -65,6 +65,9 @@ def get_block_for_timestamp(
     sidecar_url: str,
     timestamp: datetime,
     threshold_in_seconds=NEAREST_BLOCK_THRESHOLD_IN_SECONDS,
+    search_for_next_block=True
+    # If set to False, the first block before `timestamp` parameter will be returned
+    # else, the first block after `timestamp` parameter is returned
 ):
     """Returns the nearest block number for a particular timestamp.
     `threshold_in_seconds` controls the closeness of the block.
@@ -89,6 +92,7 @@ def get_block_for_timestamp(
     searched = defaultdict(int)
     last_mid = None
     last_timestamp = None
+
     while low <= high:
         mid = (high + low) // 2
         logger.debug(f"Checking if block #{mid:,} happens at {timestamp.timestamp():,}")
@@ -109,16 +113,23 @@ def get_block_for_timestamp(
         else:
             logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
             return mid
+
         # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
         if last_mid is not None:
             if abs(last_timestamp - timestamp.timestamp()) < threshold_in_seconds:
                 if (
                     last_timestamp - timestamp.timestamp() >= 0.0 
+                    and
+                    search_for_next_block
                 ):
                     nearest = last_mid
                     nearest_timestamp_epoch = last_timestamp
 
-                else:
+                elif (
+                    last_timestamp - timestamp.timestamp() < 0.0 
+                    and
+                    not search_for_next_block
+                ):
                     nearest = mid
                     nearest_timestamp_epoch = current_timestamp
                 nearest_timestamp = datetime.utcfromtimestamp(nearest_timestamp_epoch)
@@ -148,9 +159,9 @@ def export_blocks_by_timestamp(
         message = f"Start timestamp has to be before end timestamp. {start_timestamp=:} and {end_timestamp=:}"
         logger.error(message)
         raise InvalidInput(message)
-    start_block = get_block_for_timestamp(sidecar_url, start_timestamp)
+    start_block = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=start_timestamp, search_for_next_block=True)
     logger.debug(f"Start block for timestamp: {start_timestamp} is {start_block}")
-    end_block = get_block_for_timestamp(sidecar_url, end_timestamp)
+    end_block = get_block_for_timestamp(sidecar_url, end_timestamp, search_for_next_block=False)
     logger.debug(f"end block for timestamp: {end_timestamp} is {end_block}")
     logger.info(f"Getting blocks between {start_timestamp} and {end_timestamp}")
     export_blocks_by_number(
