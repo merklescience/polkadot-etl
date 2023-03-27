@@ -116,7 +116,7 @@ def get_block_for_timestamp(
 
         # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
         if last_mid is not None:
-            if abs(last_timestamp - timestamp.timestamp()) < threshold_in_seconds:
+            if abs(last_timestamp - timestamp.timestamp()) <= threshold_in_seconds:
                 if (
                     last_timestamp - timestamp.timestamp() >= 0.0 
                     and
