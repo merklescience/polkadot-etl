@@ -111,13 +111,13 @@ def get_block_for_timestamp(
         elif current_timestamp - int(timestamp.timestamp()) > 1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
             high = mid
         elif current_timestamp - int(timestamp.timestamp()) < 0 and search_for_next_block:
-            return mid + NEAREST_BLOCK_THRESHOLD_IN_SECONDS
+            return mid + 1
         elif current_timestamp - int(timestamp.timestamp()) < 0 and not search_for_next_block:
             return mid
         elif current_timestamp - int(timestamp.timestamp()) > 0 and search_for_next_block:
             return mid            
         elif current_timestamp - int(timestamp.timestamp()) > 0 and not search_for_next_block:
-            return mid - NEAREST_BLOCK_THRESHOLD_IN_SECONDS
+            return mid - 1
         else:
             logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
             return mid
