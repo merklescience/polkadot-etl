@@ -126,12 +126,30 @@ def get_block_for_timestamp(
                     nearest_timestamp_epoch = last_timestamp
 
                 elif (
-                    last_timestamp - timestamp.timestamp() > 0.0 
+                    last_timestamp - timestamp.timestamp() < 0.0 
+                    and
+                    search_for_next_block
+                ):
+                    nearest = last_mid
+                    nearest_timestamp_epoch = current_timestamp
+
+                elif (
+                    last_timestamp - timestamp.timestamp() >= 0.0 
+                    and
+                    search_for_next_block
+                ):
+                    nearest = mid
+                    nearest_timestamp_epoch = current_timestamp
+
+                elif (
+                    last_timestamp - timestamp.timestamp() < 0.0 
                     and
                     not search_for_next_block
                 ):
                     nearest = mid
-                    nearest_timestamp_epoch = current_timestamp
+                    nearest_timestamp_epoch = last_timestamp
+
+
                 nearest_timestamp = datetime.utcfromtimestamp(nearest_timestamp_epoch)
                 diff = timestamp - pytz.utc.localize(nearest_timestamp)
                 logger.warning(
