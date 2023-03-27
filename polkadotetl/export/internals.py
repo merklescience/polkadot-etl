@@ -119,8 +119,12 @@ def get_block_for_timestamp(
         elif current_timestamp - int(timestamp.timestamp()) > 0 and not search_for_next_block:
             return mid - 1
         else:
-            logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
-            return mid
+            if search_for_next_block:
+                logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
+                return mid
+            else:
+                logger.debug(f"Found block #{mid - 1:,} at timestamp {timestamp.timestamp():,}")
+                return mid - 1
 
         last_mid = mid
         last_timestamp = current_timestamp
