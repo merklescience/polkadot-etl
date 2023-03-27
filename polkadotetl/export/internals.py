@@ -106,56 +106,22 @@ def get_block_for_timestamp(
             f"Block #{mid:,} happens at {current_timestamp:,}. Difference=`{difference}`"
         )
 
-        if current_timestamp < int(timestamp.timestamp()):
+        if current_timestamp - int(timestamp.timestamp()) < -1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
             low = mid + 1
-        elif current_timestamp > int(timestamp.timestamp()):
-            high = mid - 1
+        elif current_timestamp - int(timestamp.timestamp()) > 1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
+            high = mid - 1            
+        elif current_timestamp - int(timestamp.timestamp()) < 0 and search_for_next_block:
+            return mid + NEAREST_BLOCK_THRESHOLD_IN_SECONDS
+        elif current_timestamp - int(timestamp.timestamp()) < 0 and not search_for_next_block:
+            return mid
+        elif current_timestamp - int(timestamp.timestamp()) > 0 and search_for_next_block:
+            return mid            
+        elif current_timestamp - int(timestamp.timestamp()) > 0 and not search_for_next_block:
+            return mid - NEAREST_BLOCK_THRESHOLD_IN_SECONDS
         else:
             logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
             return mid
 
-        # NOTE: doing this because the blocks will not happen at exact timestamp values so we need the nearest one.
-        if last_mid is not None:
-            if abs(last_timestamp - timestamp.timestamp()) <= threshold_in_seconds:
-                if (
-                    last_timestamp - timestamp.timestamp() >= 0.0 
-                    and
-                    search_for_next_block
-                ):
-                    nearest = last_mid
-                    nearest_timestamp_epoch = last_timestamp
-
-                elif (
-                    last_timestamp - timestamp.timestamp() < 0.0 
-                    and
-                    search_for_next_block
-                ):
-                    nearest = last_mid
-                    nearest_timestamp_epoch = current_timestamp
-
-                elif (
-                    last_timestamp - timestamp.timestamp() >= 0.0 
-                    and
-                    search_for_next_block
-                ):
-                    nearest = mid
-                    nearest_timestamp_epoch = current_timestamp
-
-                elif (
-                    last_timestamp - timestamp.timestamp() < 0.0 
-                    and
-                    not search_for_next_block
-                ):
-                    nearest = mid
-                    nearest_timestamp_epoch = last_timestamp
-
-
-                nearest_timestamp = datetime.utcfromtimestamp(nearest_timestamp_epoch)
-                diff = timestamp - pytz.utc.localize(nearest_timestamp)
-                logger.warning(
-                    f"Could not find an exact block at timestamp {timestamp:}. The nearest block is {nearest:,} at {nearest_timestamp}. Difference={diff}"
-                )
-                return nearest
         last_mid = mid
         last_timestamp = current_timestamp
     message = f"There is no block at timestamp `{timestamp}. Last searched block: {mid:,}. {actual_timestamp=}, {difference=}`."
