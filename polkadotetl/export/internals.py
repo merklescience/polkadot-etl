@@ -107,9 +107,9 @@ def get_block_for_timestamp(
         )
 
         if current_timestamp - int(timestamp.timestamp()) < -1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
-            low = mid + 1
+            low = mid
         elif current_timestamp - int(timestamp.timestamp()) > 1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
-            high = mid - 1            
+            high = mid
         elif current_timestamp - int(timestamp.timestamp()) < 0 and search_for_next_block:
             return mid + NEAREST_BLOCK_THRESHOLD_IN_SECONDS
         elif current_timestamp - int(timestamp.timestamp()) < 0 and not search_for_next_block:
