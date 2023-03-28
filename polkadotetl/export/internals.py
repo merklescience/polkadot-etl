@@ -130,8 +130,13 @@ def get_block_for_timestamp(
     response = get_block(sidecar_url, mid + 2)
     future_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
 
+    response = get_block(sidecar_url, mid + 3)
+    way_future_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
     if not is_strict_boundary:
-        if future_timestamp >= timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) < 0.1:
+        if way_future_timestamp >= timestamp.timestamp() and abs(way_future_timestamp - timestamp.timestamp()) < 0.1:
+            return mid + 3
+        elif future_timestamp >= timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) < 0.1:
             return mid + 2
         elif next_timestamp >= timestamp.timestamp() and abs(next_timestamp - timestamp.timestamp()) < 0.1:
             return mid + 1
