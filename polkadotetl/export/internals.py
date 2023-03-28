@@ -133,34 +133,36 @@ def get_block_for_timestamp(
     response = get_block(sidecar_url, mid + 3)
     way_future_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
 
+    result = None
     if not is_strict_boundary:
         if way_future_timestamp >= timestamp.timestamp() and abs(way_future_timestamp - timestamp.timestamp()) < 0.1:
-            return mid + 3
+            result = mid + 3
         elif future_timestamp >= timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) < 0.1:
-            return mid + 2
+            result = mid + 2
         elif next_timestamp >= timestamp.timestamp() and abs(next_timestamp - timestamp.timestamp()) < 0.1:
-            return mid + 1
+            result = mid + 1
         elif current_timestamp >= timestamp.timestamp() and abs(current_timestamp - timestamp.timestamp()) < 0.1:
-            return mid
+            result = mid
         elif previous_timestamp >= timestamp.timestamp() and abs(previous_timestamp - timestamp.timestamp()) < 0.1:
-            return mid - 1
+            result = mid - 1
         elif past_timestamp >= timestamp.timestamp() and abs(past_timestamp - timestamp.timestamp()) < 0.1:
-            return mid - 2
-
+            result = mid - 2
+        return result
 
     if is_strict_boundary:
         if waypast_timestamp < timestamp.timestamp() and abs(waypast_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid - 3
+            result = mid - 3
         elif past_timestamp < timestamp.timestamp() and abs(past_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid - 2
+            result = mid - 2
         elif previous_timestamp < timestamp.timestamp() and abs(previous_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid - 1
+            result = mid - 1
         elif current_timestamp < timestamp.timestamp() and abs(current_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid
+            result = mid
         elif next_timestamp < timestamp.timestamp() and abs(next_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid + 1
+            result = mid + 1
         elif future_timestamp < timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
-            return mid + 2
+            result = mid + 2
+        return result
 
 
 def export_blocks_by_timestamp(
