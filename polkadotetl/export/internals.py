@@ -65,7 +65,6 @@ def validate_inputs(
 def get_block_for_timestamp(
     sidecar_url: str,
     timestamp: datetime,
-    threshold_in_seconds=NEAREST_BLOCK_THRESHOLD_IN_SECONDS,
     is_strict_boundary=False
     # If set to False, the first block after `timestamp` parameter will be returned
     # else, the first block before `timestamp` parameter is returned
@@ -106,9 +105,9 @@ def get_block_for_timestamp(
             f"Block #{mid:,} happens at {current_timestamp:,}. Difference=`{difference}`"
         )
 
-        if (current_timestamp - timestamp.timestamp()) < -1.000000 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
+        if (current_timestamp - timestamp.timestamp()) < -1.000000 * POLKADOT_BLOCK_CREATION_TIME_SECONDS:
             low = mid + 1
-        elif (current_timestamp - timestamp.timestamp()) > 1.0000000 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
+        elif (current_timestamp - timestamp.timestamp()) > 1.0000000 * POLKADOT_BLOCK_CREATION_TIME_SECONDS:
             high = mid - 1
         else:
             low = mid
