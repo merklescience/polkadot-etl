@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Optional
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput, NoBlockAtTimestamp
-from polkadotetl.constants import NEAREST_BLOCK_THRESHOLD_IN_SECONDS, SIDECAR_RETRIES
+from polkadotetl.constants import POLKADOT_BLOCK_CREATION_TIME_SECONDS, SIDECAR_RETRIES
 from polkadotetl.export import sidecar
 from tenacity import RetryError
+from math import floor
 
 
 class InputType(Enum):
@@ -65,9 +66,9 @@ def get_block_for_timestamp(
     sidecar_url: str,
     timestamp: datetime,
     threshold_in_seconds=NEAREST_BLOCK_THRESHOLD_IN_SECONDS,
-    search_for_next_block=True
-    # If set to False, the first block before `timestamp` parameter will be returned
-    # else, the first block after `timestamp` parameter is returned
+    is_strict_boundary=False
+    # If set to False, the first block after `timestamp` parameter will be returned
+    # else, the first block before `timestamp` parameter is returned
 ):
     """Returns the nearest block number for a particular timestamp.
     `threshold_in_seconds` controls the closeness of the block.
@@ -91,46 +92,71 @@ def get_block_for_timestamp(
     # NOTE: use binary search algorithm to get the block number for this timestamp
     searched = defaultdict(int)
     last_mid = None
-    last_timestamp = None
 
-    while low <= high:
+    while high - low > 1:
         mid = (high + low) // 2
         logger.debug(f"Checking if block #{mid:,} happens at {timestamp.timestamp():,}")
         response = get_block(sidecar_url, mid)
         # get the timestamp out of the first extrinsic
-        current_timestamp = int(response["extrinsics"][0]["args"]["now"]) / 1000
+        current_timestamp = int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000
         # divide by 1000 because it is in milliseconds
         actual_timestamp = datetime.utcfromtimestamp(current_timestamp)
         difference = timestamp - pytz.utc.localize(actual_timestamp)
-        logger.debug(
+        logger.info(
             f"Block #{mid:,} happens at {current_timestamp:,}. Difference=`{difference}`"
         )
 
-        if current_timestamp - int(timestamp.timestamp()) < -1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
-            low = mid
-        elif current_timestamp - int(timestamp.timestamp()) > 1 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
-            high = mid
-        elif current_timestamp - int(timestamp.timestamp()) < 0 and search_for_next_block:
-            return mid + 1
-        elif current_timestamp - int(timestamp.timestamp()) < 0 and not search_for_next_block:
-            return mid
-        elif current_timestamp - int(timestamp.timestamp()) > 0 and search_for_next_block:
-            return mid            
-        elif current_timestamp - int(timestamp.timestamp()) > 0 and not search_for_next_block:
-            return mid - 1
+        if (current_timestamp - timestamp.timestamp()) < -1.000000 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
+            low = mid + 1
+        elif (current_timestamp - timestamp.timestamp()) > 1.0000000 * NEAREST_BLOCK_THRESHOLD_IN_SECONDS:
+            high = mid - 1
         else:
-            if search_for_next_block:
-                logger.debug(f"Found block #{mid:,} at timestamp {timestamp.timestamp():,}")
-                return mid
-            else:
-                logger.debug(f"Found block #{mid - 1:,} at timestamp {timestamp.timestamp():,}")
-                return mid - 1
+            low = mid
 
-        last_mid = mid
-        last_timestamp = current_timestamp
-    message = f"There is no block at timestamp `{timestamp}. Last searched block: {mid:,}. {actual_timestamp=}, {difference=}`."
-    logger.error(message)
-    raise NoBlockAtTimestamp(message)
+    response = get_block(sidecar_url, mid - 3)
+    waypast_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    response = get_block(sidecar_url, mid - 2)
+    past_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    response = get_block(sidecar_url, mid - 1)
+    previous_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    response = get_block(sidecar_url, mid)
+    current_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    response = get_block(sidecar_url, mid + 1)
+    next_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    response = get_block(sidecar_url, mid + 2)
+    future_timestamp = (int(response["extrinsics"][0]["args"]["now"]) * 1.000000 / 1000.000000)
+
+    if not is_strict_boundary:
+        if future_timestamp >= timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) < 0.1:
+            return mid + 2
+        elif next_timestamp >= timestamp.timestamp() and abs(next_timestamp - timestamp.timestamp()) < 0.1:
+            return mid + 1
+        elif current_timestamp >= timestamp.timestamp() and abs(current_timestamp - timestamp.timestamp()) < 0.1:
+            return mid
+        elif previous_timestamp >= timestamp.timestamp() and abs(previous_timestamp - timestamp.timestamp()) < 0.1:
+            return mid - 1
+        elif past_timestamp >= timestamp.timestamp() and abs(past_timestamp - timestamp.timestamp()) < 0.1:
+            return mid - 2
+
+
+    if is_strict_boundary:
+        if waypast_timestamp < timestamp.timestamp() and abs(waypast_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid - 3
+        elif past_timestamp < timestamp.timestamp() and abs(past_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid - 2
+        elif previous_timestamp < timestamp.timestamp() and abs(previous_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid - 1
+        elif current_timestamp < timestamp.timestamp() and abs(current_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid
+        elif next_timestamp < timestamp.timestamp() and abs(next_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid + 1
+        elif future_timestamp < timestamp.timestamp() and abs(future_timestamp - timestamp.timestamp()) <= POLKADOT_BLOCK_CREATION_TIME_SECONDS:
+            return mid + 2
 
 
 def export_blocks_by_timestamp(
@@ -147,9 +173,9 @@ def export_blocks_by_timestamp(
         message = f"Start timestamp has to be before end timestamp. {start_timestamp=:} and {end_timestamp=:}"
         logger.error(message)
         raise InvalidInput(message)
-    start_block = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=start_timestamp, search_for_next_block=True)
+    start_block = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=start_timestamp, is_strict_boundary=False)
     logger.debug(f"Start block for timestamp: {start_timestamp} is {start_block}")
-    end_block = get_block_for_timestamp(sidecar_url, end_timestamp, search_for_next_block=False)
+    end_block = get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=end_timestamp, is_strict_boundary=True)
     logger.debug(f"end block for timestamp: {end_timestamp} is {end_block}")
     logger.info(f"Getting blocks between {start_timestamp} and {end_timestamp}")
     export_blocks_by_number(
@@ -191,22 +217,6 @@ def export_blocks_by_number(
             logger.error(f"Unable to export block {block_number} due to retry failures")
 
     logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")
-
-
-def get_block_on_or_after_timestamp(
-    sidecar_url: str,
-    timestamp: datetime    
-):
-    return get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
-
-
-def get_block_before_timestamp(
-    sidecar_url: str,
-    timestamp: datetime    
-):
-    return (
-        get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp) - 1
-    )
 
 
 def get_latest_block(
