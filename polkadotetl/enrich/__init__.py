@@ -36,6 +36,7 @@ def enrich_block(sidecar_block_response: dict):
         "balances.ReserveRepatriated",
         "balances.Slashed",
         "balances.Transfer",
+        "balances.TransferAllowDeath",
         "claims.Claimed",
         "identity.SubIdentityAdded",
         "identity.SubIdentityRemoved",
@@ -74,7 +75,7 @@ def enrich_block(sidecar_block_response: dict):
                         signature
                     )
                 )
-            if event_type == "balances.Transfer":
+            if event_type in ("balances.Transfer", "balances.TransferAllowDeath"):
                 sender_address = signer
                 # second item in the data list
                 receiver_address = event["data"][1]
