@@ -182,7 +182,7 @@ def enrich_block(sidecar_block_response: dict):
                 token_address=token_address,
                 coin_value=coin_value,
                 fee=fee,
-                block_timestamp=datetime.datetime.utcfromtimestamp(int(block_timestamp) / 1000),
+                block_timestamp=int(block_timestamp),
                 log_index=0
             )
             if txn not in txns:
