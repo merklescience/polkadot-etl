@@ -4,7 +4,7 @@ import datetime
 
 from polkadotetl.logger import logger
 from polkadotetl.core.types import TransferTypes
-from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION
+from polkadotetl.constants import POLKADOT_TREASURY, DECIMAL_AFTER_REDENOMINATION, REWARD_DESTINATION_STASH, REWARD_DESTINATION_STAKED, REWARD_DESTINATION_CONTROLLER, REWARD_DESTINATION_ACCOUNT
 from polkadotetl.exceptions import BlockNotFinalized
 from polkadotetl.warnings import NoTransactionsWarning
 
@@ -92,7 +92,7 @@ def enrich_block(sidecar_block_response: dict):
                 coin_value = 0
                 fee = float(event["data"][0]) / DECIMAL_AFTER_REDENOMINATION
                 type_ = TransferTypes.FEE
-            elif event_type in ("staking.Reward", "staking.Rewarded"):
+            elif event_type == "staking.Reward":
                 sender_address = None
                 receiver_address = event["data"][0]
                 if status:
@@ -101,6 +101,28 @@ def enrich_block(sidecar_block_response: dict):
                     coin_value = 0
                 fee = 0
                 type_ = TransferTypes.NO_SENDER
+            elif event_type == "staking.Rewarded":
+            ### https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/staking/src/lib.rs#L401
+                sender_address = None
+                if (REWARD_DESTINATION_STASH in event["data"][1]):
+                    receiver_address = event["data"][0]
+                elif (REWARD_DESTINATION_STAKED in event["data"][1]):
+                    receiver_address = event["data"][0]
+                elif (REWARD_DESTINATION_CONTROLLER in event["data"][1]):
+                    receiver_address = event["data"][1]["Controller"]
+                elif (REWARD_DESTINATION_ACCOUNT in event["data"][1]):
+                    receiver_address = event["data"][1]["Account"]
+                else:
+                    receiver_address = event["data"][0]
+                if status:
+                    if (REWARD_DESTINATION_STASH in event["data"][1]):
+                        coin_value = 0
+                    else:
+                        coin_value = float(event["data"][2]) / DECIMAL_AFTER_REDENOMINATION
+                else:
+                    coin_value = 0
+                fee = 0
+                type_ = TransferTypes.NO_SENDER   
             elif event_type == "claims.Claimed":
                 sender_address = None
                 receiver_address = event["data"][0]
