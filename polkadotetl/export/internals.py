@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Optional
 from polkadotetl.logger import logger
 from polkadotetl.exceptions import InvalidInput, NoBlockAtTimestamp
-from polkadotetl.constants import NEAREST_BLOCK_THRESHOLD_IN_SECONDS, SIDECAR_RETRIES
+from polkadotetl.constants import POLKADOT_BLOCK_CREATION_TIME_SECONDS, SIDECAR_RETRIES
 from polkadotetl.export import sidecar
 from tenacity import RetryError
+from math import floor
 
 
 class InputType(Enum):
@@ -203,22 +204,6 @@ def export_blocks_by_number(
             logger.error(f"Unable to export block {block_number} due to retry failures")
 
     logger.debug(f"Wrote {end_block - start_block + 1} blocks to {output_directory}.")
-
-
-def get_block_on_or_after_timestamp(
-    sidecar_url: str,
-    timestamp: datetime    
-):
-    return get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp)
-
-
-def get_block_before_timestamp(
-    sidecar_url: str,
-    timestamp: datetime    
-):
-    return (
-        get_block_for_timestamp(sidecar_url=sidecar_url, timestamp=timestamp) - 1
-    )
 
 
 def get_latest_block(
